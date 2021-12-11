@@ -1,0 +1,56 @@
+
+Efficient Terrain Rendering and Chunking
+Chunk Class:
+Given a world position, one could set/get block at according chunk while inside chunk, only local coordinate is used.
+I implemented the create() func only use one interleaved VBO. The related drawable class and shadeprogram are also altered.
+MyGL is now painting terrain based on chunks. 
+For efficiency, the adjacent block and adjacent chunk check are implemented.
+The (x,z) mapping is approached by using 64 bit interger. 
+Procedural Terrain
+I made the fbm to only generate dirt only from y = 129 to 200 in order to make the addition and removal of the blocks more visible. 
+It is from 129 to 255 in the code I commited. They only have minor differences
+When expanding the terrain, instead of leaving the terrain L shape, I always make it a rectangle or square to make it look good. At the same time, the terrain can have a proper dimensions.
+
+
+Lsystem Rivers
+Implementation: Lsystem Class, Turtle Class 
+Parsing and draw the river using stack and a map from character to functions related to turtles.
+Given certain grammar rule and axiom, start position, could parse and generate the river.
+The river could correctly be generated without discontinuity.(see helplog for detailed solution)
+Given flag, the main stream could be wider than branches.
+Could clean up surronding and gradualling carving to a certain height. (here is 135)
+Incorporate random numbers to influence path orientation and probability of branch generation.
+
+
+Texturing and Texture Animation
+For the Bling phong shading, I placed a point light at (64,210,64), and only kept the specular light and a little bit ambient light to make the shading obvious. You can see in my video the 
+different colors on dirt block and the dirt side on grass block due to different cos power. Since water has pretty high cosine power, it is extremely bright when we catch the specular light and 
+extremely dark when we don't. Note that use different keys to add different types of blocks. Z - Bedrock, X - Wood, C - LEAF, V - ICE, B - LAVA, LEFT-CLICK - STONE. Also, each type has different
+cosine power. Grass - 4.0, Dirt - 2.0, Stone -3.0, Water - 7.0, Lava - 3.0, wood - 2.0, leaf - 4.0, ICE - 9.0. ICE and Water are transparent and thus blocks behind them are also drawn with seperate VBO.
+
+
+Shadow Mapping:
+The general implementation idea is first generate the shadow texutre during initializeGL, bind it to our
+shadow frame buffer and tell gl not to draw the output.  Then during each paintGL(), calculate the current
+light view transformation matrix and pass it to shader, then we can first render our shadow shader to get
+the shadow map, and then render the final scene with the output shadow map.
+Other details include: 
+Add shadow texture and buffer handle to mygl. Add related uniform handle to shader program.
+Set the right offset of texture slot.
+In lambert shader, perform perspective divide and clamp the final value from 0 to 1 for the shadow coord.
+Bind shadow frame buffer and then bind default frame buffer during each rendering to get right output.
+
+Color image file as height map
+Use an Qmenu action() to read a PNG image file. Based on the greyscale value, the height of current area
+is deformed. Greyscale value is scaled down to [-30,30] as the height de value.
+And the block type of each (X, Z) coordinate  is decided by the rgb value. 
+*Note: Since we don't have a player class, I set the position of the mapping start as in ray marching.
+
+Biome
+First reshaped the terrain by taking the noise to exponent so that I have more extreme terrain(high mountain and flat ground). Used another fbm noise function to generate moisture parameter and used the overall
+elevation at the same time to have grass land, desert, stone mountain, ice mountain, also added noise to the transition from snow to stone so that it is more smooth.
+
+Cave
+USED FBM to generate a random walk. At each step, a sphere hollow is created around the walk edge. Note that in order to prevent walking back, I always make sure new walking direction
+has a postive dot product with the previous walking direction. The walls in side the tunnel and cave are decorated with randomly distributed gold ore. At the end of 150th step,  a large cave
+is created. It is sphere like but with noise. The bottom third of it is filled with lava
